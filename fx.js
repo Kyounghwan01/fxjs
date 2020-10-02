@@ -4,25 +4,10 @@ const add = (a, b) => a + b;
 const isIterable = a => a && a[Symbol.iterator];
 const go = (...args) => reduce((a, f) => f(a), args);
 const pipe = (f, ...fs) => (...as) => go(f(...as), ...fs);
-// const sum = fn => pipe(map(fn), reduce(add));
 const sum = curry((fn, iter) => go(iter, map(fn), reduce(add)));
 const goPromise = (a, f) => (a instanceof Promise ? a.then(f) : f(a));
-
-// const map = curry((f, iter) => {
-//   let res = [];
-//   for (const a of iter) {
-//     res.push(f(a));
-//   }
-//   return res;
-// });
-
-// const filter = curry((f, iter) => {
-//   let res = [];
-//   for (const a of iter) {
-//     if (f(a)) res.push(a);
-//   }
-//   return res;
-// });
+const nop = Symbol("nop");
+const L = {};
 
 const checkPromise = (acc, a, f) =>
   a instanceof Promise
@@ -82,13 +67,11 @@ const take = curry((l, iter) => {
   })();
 });
 
-const takeAll = take(Infinity);
-
-const L = {};
-
 L.range = function* (l) {
+  log(l);
   let i = -1;
   while (++i < l) {
+    log(i);
     yield i;
   }
 };
@@ -99,7 +82,6 @@ L.map = curry(function* (f, iter) {
   }
 });
 
-const nop = Symbol("nop");
 L.filter = curry(function* (f, iter) {
   for (const a of iter) {
     const b = goPromise(a, f);
@@ -127,6 +109,8 @@ L.deepFlat = function* f(iter) {
 };
 
 L.flatMap = curry(pipe(L.map, L.flatten));
+
+const takeAll = take(Infinity);
 
 const map = curry(pipe(L.map, takeAll));
 

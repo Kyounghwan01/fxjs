@@ -72,3 +72,16 @@ log(
     { id: 3, usage: 11 }
   ])
 );
+
+// promise값 지원
+go(
+  [Promise.resolve(1), Promise.resolve(2), Promise.resolve(3)],
+  L.map(a => Promise.resolve(a * a)),
+  L.filter(a => Promise.resolve(a % 2)),
+  reduce((a, b) => a + b),
+  take(2),
+  log
+);
+
+// log(L.flatten([[1, 2, 3], 4, 5, [6, 7, 8]]));
+// log([...L.deepFlat([1, [2, [3, [4, 5]]]])]);
