@@ -1,4 +1,14 @@
-const { sum, curry, reduce, go, pipe, log, add, filter, map } = require("./fx");
+const {
+  sum,
+  curry,
+  reduce,
+  go,
+  pipe,
+  log,
+  add,
+  filter,
+  map
+} = require("../fx");
 
 const products = [
   { name: "반팔티", price: 15000, quantity: 1, is_selected: true },
@@ -85,3 +95,9 @@ go(
 
 // log(L.flatten([[1, 2, 3], 4, 5, [6, 7, 8]]));
 // log([...L.deepFlat([1, [2, [3, [4, 5]]]])]);
+
+/** each, L.range */
+function f4(end) {
+  go(L.range(1, end, 2), each(console.log));
+}
+f4(10);

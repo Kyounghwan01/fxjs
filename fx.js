@@ -67,14 +67,15 @@ const take = curry((l, iter) => {
   })();
 });
 
-L.range = function* (l) {
-  log(l);
-  let i = -1;
-  while (++i < l) {
-    log(i);
-    yield i;
+function* rangeLazy(start = 0, stop = start, step = 1) {
+  if (arguments.length == 1) start = 0;
+  while (start < stop) {
+    yield start;
+    start += step;
   }
-};
+}
+
+L.range = (..._) => takeAll(rangeLazy(..._));
 
 L.map = curry(function* (f, iter) {
   for (const a of iter) {
@@ -116,6 +117,13 @@ const map = curry(pipe(L.map, takeAll));
 
 const filter = curry(pipe(L.filter, takeAll));
 
+const each = curry((f, iter) =>
+  goPromise(
+    reduce((_, a) => f(a), null, iter),
+    _ => iter
+  )
+);
+
 module.exports = {
   sum,
   curry,
@@ -128,6 +136,7 @@ module.exports = {
   range,
   log,
   take,
+  each,
   takeAll,
   L
 };
