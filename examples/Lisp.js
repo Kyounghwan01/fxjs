@@ -1,4 +1,4 @@
-const { L, go, take, reduce } = require("../fx");
+const { L, C, _, log } = require("../fx");
 
 /**
  * 값을 바꿔야한다 map
@@ -7,16 +7,16 @@ const { L, go, take, reduce } = require("../fx");
  * 시간복잡도를 줄여야한다 take <- break
  */
 function f1(limit, list) {
-  const res = go(
+  const res = _.go(
     list,
     L.filter(a => a % 2),
     L.map(a => a * a),
-    take(limit),
-    a => reduce((a, b) => a + b, 0, a)
+    _.take(limit),
+    a => _.reduce((a, b) => a + b, 0, a)
   );
   console.log(res);
 }
-// f1(3, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+f1(3, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 
 /**
  * while문 -> range

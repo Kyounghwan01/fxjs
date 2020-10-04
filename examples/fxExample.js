@@ -1,17 +1,4 @@
-const {
-  sum,
-  curry,
-  reduce,
-  go,
-  pipe,
-  log,
-  add,
-  filter,
-  map,
-  L,
-  take,
-  each
-} = require("../fx");
+const { log, L, _, C } = require("../fx");
 
 const products = [
   { name: "반팔티", price: 15000, quantity: 1, is_selected: true },
@@ -20,10 +7,11 @@ const products = [
   { name: "후드티", price: 30000, quantity: 4, is_selected: false },
   { name: "바지", price: 25000, quantity: 5, is_selected: false }
 ];
+const add = (a, b) => a + b;
 
-const total_price = pipe(
-  map(p => p.price),
-  reduce(add)
+const total_price = _.pipe(
+  _.map(p => p.price),
+  _.reduce(add)
 );
 
 // go(
@@ -34,7 +22,7 @@ const total_price = pipe(
 //   log
 // );
 
-const base_total_price = predi => pipe(filter(predi), total_price);
+const base_total_price = predi => _.pipe(_.filter(predi), total_price);
 
 // go(
 //   products,
@@ -42,7 +30,7 @@ const base_total_price = predi => pipe(filter(predi), total_price);
 //   log
 // );
 
-const a = go(
+const a = _.go(
   products,
   base_total_price(p => p.price >= 20000)
 );
@@ -50,29 +38,29 @@ const a = go(
 // console.log(1, a);
 
 const totalQuantity = products =>
-  go(
+  _.go(
     products,
-    map(products => products.quantity),
-    reduce(add)
+    _.map(products => products.quantity),
+    _.reduce(add)
   );
 
 const total = products =>
-  go(
+  _.go(
     products,
-    map(products => products.quantity * products.price),
-    reduce(add)
+    _.map(products => products.quantity * products.price),
+    _.reduce(add)
   );
 
 // console.log(333, totalQuantity(products));
 // console.log(444, total(products));
 
-const totalQuantityPipe = pipe(
-  map(products => products.quantity),
-  reduce(add)
+const totalQuantityPipe = _.pipe(
+  _.map(products => products.quantity),
+  _.reduce(add)
 );
-const totalPipe = pipe(
-  map(products => products.quantity * products.price),
-  reduce(add)
+const totalPipe = _.pipe(
+  _.map(products => products.quantity * products.price),
+  _.reduce(add)
 );
 
 // const totalSum = sum(p => p.quantity);
@@ -125,13 +113,13 @@ const delay500 = a =>
   });
 
 function f5(list) {
-  return go(
+  return _.go(
     list,
     L.map(a => delay500(a * a)),
     L.filter(a => delay500(a % 2)),
     L.map(a => delay500(a + 1)),
-    take(2),
-    reduce((a, b) => a + b),
+    _.take(2),
+    _.reduce((a, b) => a + b),
     log
   );
 }
@@ -161,20 +149,20 @@ async function f6(list) {
 /** 파이프라인 + async await */
 
 async function f52(list) {
-  const r1 = await go(
+  const r1 = await _.go(
     list,
     L.map(a => delay500(a * a)),
     L.filter(a => delay500(a % 2)),
     L.map(a => delay500(a + 1)),
-    take(2),
-    reduce((a, b) => a + b)
+    _.take(2),
+    _.reduce((a, b) => a + b)
   );
 
-  const r2 = await go(
+  const r2 = await _.go(
     list,
     L.map(a => delay500(a * a)),
-    take(2),
-    reduce((a, b) => a + b)
+    _.take(2),
+    _.reduce((a, b) => a + b)
   );
   return r1 + r2;
 }
@@ -183,13 +171,13 @@ async function f52(list) {
 /** 동기상황 에러핸들링 */
 function f7(list) {
   try {
-    return go(
+    return _.go(
       list,
       L.map(a => delay500(a * a)),
       L.filter(a => delay500(a % 2)),
       L.map(a => delay500(a + 1)),
-      take(2),
-      reduce((a, b) => a + b),
+      _.take(2),
+      _.reduce((a, b) => a + b),
       log
     );
   } catch (e) {
@@ -206,11 +194,11 @@ function f7(list) {
  */
 async function f8(list) {
   try {
-    const res = await go(
+    const res = await _.go(
       list,
-      L.map(a => new Promise(resolve => resolve(JSON.parse(a)))),
+      C.map(a => new Promise(resolve => resolve(JSON.parse(a)))),
       L.filter(a => a % 2),
-      take(3)
+      _.take(3)
     );
     return res;
   } catch (e) {
