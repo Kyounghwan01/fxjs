@@ -1,22 +1,8 @@
-const {
-  L,
-  take,
-  takeAll,
-  log,
-  range,
-  curry,
-  reduce,
-  go,
-  pipe,
-  add,
-  map,
-  filter
-} = require("./fx");
+const { L, _, log } = require("./fx");
+const add = (a, b) => a + b;
 
-console.clear();
-
-let list = range(50000);
-log(reduce(add, list));
+let list = _.range(50000);
+log(_.reduce(add, list));
 
 // lazy function
 // const L = {};
@@ -62,7 +48,7 @@ log(reduce(add, list));
 // const map = curry(pipe(L.map, takeAll));
 // const map = curry((f, iter) => go(L.map(f, iter), takeAll));
 
-log(map(a => a + 10, L.range(4)));
+log(_.map(a => a + 10, L.range(4)));
 
 // ## L.filter + take로 filter 만들기
 
@@ -101,14 +87,14 @@ var its = L.flatten([[1, 2, 3], 4, 5, [6, 7, 8]]);
 // L.flatMap = curry(pipe(L.map, L.flatten));
 // pipe(L.map, L.flatten)
 
-var its = go(
+var its = _.go(
   [
     [1, 2],
     [3, 4],
     [5, 6]
   ],
   L.flatMap(L.map(a => a * a)),
-  takeAll
+  _.takeAll
 );
 
 // console.log(123, its);
@@ -131,13 +117,13 @@ const arr = [
   [6, 7, 8]
 ];
 
-var its = go(
+var its = _.go(
   arr,
   L.flatten,
   L.filter(a => a % 2),
   L.map(a => a * a),
-  takeAll,
-  reduce(add)
+  _.takeAll,
+  _.reduce(add)
 );
 console.log(its);
 

@@ -9,6 +9,8 @@ const goPromise = (a, f) => (a instanceof Promise ? a.then(f) : f(a));
 // "Symbol 값도 객체의 프로퍼티 키로 사용할 수 있다. Symbol 값은 유일한 값이므로 Symbol 값을 키로 갖는 프로퍼티는 다른 어떠한 프로퍼티와도 충돌하지 않는다."
 const nop = Symbol("nop");
 const L = {};
+const C = {};
+function noop() {}
 
 const checkPromise = (acc, a, f) =>
   a instanceof Promise
@@ -38,14 +40,14 @@ const reduce = curry((f, acc, iter) => {
   });
 });
 
-const range = l => {
-  let i = -1;
-  let res = [];
-  while (++i < l) {
-    res.push(i);
-  }
-  return res;
-};
+// const range = l => {
+//   let i = -1;
+//   let res = [];
+//   while (++i < l) {
+//     res.push(i);
+//   }
+//   return res;
+// };
 
 const take = curry((l, iter) => {
   let res = [];
@@ -75,7 +77,8 @@ function* rangeLazy(start = 0, stop = start, step = 1) {
   }
 }
 
-L.range = (..._) => takeAll(rangeLazy(..._));
+L.range = rangeLazy;
+const range = (..._) => takeAll(rangeLazy(..._));
 
 L.map = curry(function* (f, iter) {
   for (const a of iter) {
@@ -111,6 +114,22 @@ L.deepFlat = function* f(iter) {
 
 L.flatMap = curry(pipe(L.map, L.flatten));
 
+const catchNoop = ([...arr]) => (
+  arr.forEach(a => (a instanceof Promise ? a.catch(noop) : a)), arr
+);
+
+C.reduce = curry((f, acc, iter) =>
+  iter ? reduce(f, acc, catchNoop(iter)) : reduce(f, catchNoop(acc))
+);
+
+C.take = curry((l, iter) => take(l, catchNoop([...iter])));
+
+C.takeAll = C.take(Infinity);
+
+C.map = curry(pipe(L.map, C.takeAll));
+
+C.filter = curry(pipe(L.filter, C.takeAll));
+
 const takeAll = take(Infinity);
 
 const map = curry(pipe(L.map, takeAll));
@@ -124,9 +143,7 @@ const each = curry((f, iter) =>
   )
 );
 
-module.exports = {
-  sum,
-  curry,
+const _ = {
   map,
   filter,
   reduce,
@@ -137,6 +154,13 @@ module.exports = {
   log,
   take,
   each,
-  takeAll,
-  L
+  curry,
+  takeAll
+};
+
+module.exports = {
+  _,
+  L,
+  C,
+  log
 };
