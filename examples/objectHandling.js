@@ -89,3 +89,11 @@ console.log(
     )
   )
 );
+
+// find 쓰지말고 filter로 -> find 없으면 undefined 뜨는데 그건 불안한 값. 값이 없으면 안뜨는게 안전
+_.go(
+  users,
+  L.filter(u => u.name === "AA"),
+  C.take(1),
+  _.each(console.log)
+);

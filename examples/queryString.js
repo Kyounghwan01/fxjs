@@ -68,3 +68,13 @@ const query5 = _.pipe(
 );
 
 console.log(query5(obj1));
+
+const split = _.curry((sep, str) => str.split(sep));
+const queryToObject = _.pipe(
+  split("&"),
+  _.map(split("=")),
+  _.map(([k, v]) => ({ [k]: v })),
+  _.reduce((a, b) => Object.assign({ ...a, ...b }))
+);
+
+console.log(queryToObject("a=1&c=CC&d=DD"));

@@ -143,6 +143,21 @@ const each = curry((f, iter) =>
   )
 );
 
+const omit = (arr, iter) => {
+  let newObj = iter;
+  each(el => {
+    go(
+      newObj,
+      Object.entries,
+      L.filter(([k, _]) => k !== el),
+      L.map(([k, v]) => ({ [k]: v })),
+      reduce(Object.assign),
+      res => (newObj = res)
+    );
+  }, arr);
+  return newObj;
+};
+
 const _ = {
   map,
   filter,
@@ -155,6 +170,7 @@ const _ = {
   take,
   each,
   curry,
+  omit,
   takeAll
 };
 
