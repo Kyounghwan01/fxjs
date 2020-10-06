@@ -11,6 +11,9 @@ const nop = Symbol("nop");
 const L = {};
 const C = {};
 function noop() {}
+function safety(a) {
+  return a != null && !!a[Symbol.iterator] ? a : empty;
+}
 
 const checkPromise = (acc, a, f) =>
   a instanceof Promise
@@ -69,6 +72,15 @@ const take = curry((l, iter) => {
   })();
 });
 
+L.take = curry(function* takeLazy(l, iter) {
+  if (l < 1) return;
+  for (const a of safety(iter)) {
+    if (a instanceof Promise) yield a.then(a => (--l, a));
+    else yield (--l, a);
+    if (!l) break;
+  }
+});
+
 function* rangeLazy(start = 0, stop = start, step = 1) {
   if (arguments.length == 1) start = 0;
   while (start < stop) {
@@ -113,6 +125,25 @@ L.deepFlat = function* f(iter) {
 };
 
 L.flatMap = curry(pipe(L.map, L.flatten));
+
+L.values = function* (obj) {
+  // 호출되는 객체만 배열로 바꿈
+  for (const k in obj) {
+    yield obj[k];
+  }
+};
+
+L.entries = function* (obj) {
+  for (const k in obj) {
+    yield [k, obj[k]];
+  }
+};
+
+L.keys = function* (obj) {
+  for (const k in obj) {
+    yield k;
+  }
+};
 
 const catchNoop = ([...arr]) => (
   arr.forEach(a => (a instanceof Promise ? a.catch(noop) : a)), arr
