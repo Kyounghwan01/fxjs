@@ -14,6 +14,11 @@ function noop() {}
 function safety(a) {
   return a != null && !!a[Symbol.iterator] ? a : empty;
 }
+function toIter(iterable) {
+  return iterable && iterable[Symbol.iterator]
+    ? iterable[Symbol.iterator]()
+    : empty;
+}
 
 const checkPromise = (acc, a, f) =>
   a instanceof Promise
@@ -145,6 +150,27 @@ L.keys = function* (obj) {
   }
 };
 
+L.takeUntil = curry(function* takeUntilLazy(f, iter) {
+  let ok = false;
+  for (const a of safety(iter)) {
+    ok = goPromise(a, f);
+    if (ok instanceof Promise) yield ok.then(_ok => ((ok = _ok), a));
+    else yield a;
+    if (ok) break;
+  }
+});
+
+L.takeWhile = curry(function* takeWhileLazy(f, iter) {
+  let ok = false;
+  for (const a of safety(iter)) {
+    ok = goPromise(a, f);
+    if (ok instanceof Promise)
+      yield ok.then(_ok => ((ok = _ok) ? a : Promise.reject(nop_0)));
+    else if (ok) yield a;
+    if (!ok) break;
+  }
+});
+
 const catchNoop = ([...arr]) => (
   arr.forEach(a => (a instanceof Promise ? a.catch(noop) : a)), arr
 );
@@ -174,20 +200,65 @@ const each = curry((f, iter) =>
   )
 );
 
-const omit = (arr, iter) => {
-  let newObj = iter;
-  each(el => {
-    go(
-      newObj,
-      Object.entries,
-      L.filter(([k, _]) => k !== el),
-      L.map(([k, v]) => ({ [k]: v })),
-      reduce(Object.assign),
-      res => (newObj = res)
-    );
-  }, arr);
-  return newObj;
-};
+const pick = (ks, obj) =>
+  _.go(
+    ks,
+    _.map(k => [k, obj[k]]),
+    _.filter(([_, v]) => v !== undefined),
+    object
+  );
+
+const omit = (ks, obj) =>
+  _.go(
+    obj,
+    L.entries,
+    _.filter(([k, _]) => !ks.includes(k)),
+    object
+  );
+
+// const obj2 = { a: 1, b: 2, c: 3, d: 4, e: 5 };
+// console.log(pick(["b", "c", "z"], obj2));
+// console.log(omit(["a", "c", "b"], obj2));
+
+/** false일때 계속 담다가 처음으로 true를 만날 때까지 담는 함수 */
+const takeUntil = curry(function takeUntil(f, iter) {
+  let res = [];
+  iter = toIter(iter);
+  return (function recur() {
+    let cur;
+    while (!(cur = iter.next()).done) {
+      const a = cur.value;
+      const b = goPromise(a, a => (res.push(a), f(a, res)));
+      if (b instanceof Promise)
+        return b
+          .then(b => (b ? res : recur()))
+          .catch(e => (e == nop_0 ? recur() : Promise.reject(e)));
+      if (b) break;
+    }
+    return res;
+  })();
+});
+
+/** takeUntil의 반대 - true일때만 계속 담음 false면 중지 */
+const takeWhile = curry(function takeWhile(f, iter) {
+  let res = [];
+  iter = toIter(iter);
+  return (function recur() {
+    let cur;
+    while (!(cur = iter.next()).done) {
+      const a = cur.value;
+      const b = goPromise(a, a => f(a, res));
+      if (!b) return res;
+      if (b instanceof Promise) {
+        return b
+          .then(async b => (b ? (res.push(await a), recur()) : res))
+          .catch(e => (e == nop_0 ? recur() : Promise.reject(e)));
+      }
+      res.push(a);
+    }
+    return res;
+  })();
+});
 
 const _ = {
   map,
@@ -201,8 +272,11 @@ const _ = {
   take,
   each,
   curry,
+  pick,
   omit,
-  takeAll
+  takeAll,
+  takeUntil,
+  takeWhile
 };
 
 module.exports = {
